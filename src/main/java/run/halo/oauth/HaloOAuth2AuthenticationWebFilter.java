@@ -13,10 +13,17 @@ import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuth
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeReactiveAuthenticationManager;
 import org.springframework.security.oauth2.client.oidc.authentication.ReactiveOidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizationCodeAuthenticationTokenConverter;
 import org.springframework.security.oauth2.client.web.server.authentication.OAuth2LoginAuthenticationWebFilter;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.MappedJwtClaimSetConverter;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
@@ -89,26 +96,8 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
             accessTokenResponseClient,
             oidcUserService
         );
-        var oidcIdTokenDecodeFactory = new ReactiveOidcIdTokenDecoderFactory();
-        oidcIdTokenDecodeFactory.setJwsAlgorithmResolver(clientRegistration -> {
-            var configurationMetadata = clientRegistration.getProviderDetails()
-                .getConfigurationMetadata();
-            try {
-                var supportedJwsAlgorithms = JSONObjectUtils.getStringList(
-                    new JSONObject(configurationMetadata),
-                    "id_token_signing_alg_values_supported"
-                );
-                // we choose the first one as JWS algorithm
-                if (!supportedJwsAlgorithms.isEmpty()) {
-                    var jwsAlgorithm = supportedJwsAlgorithms.get(0);
-                    return SignatureAlgorithm.from(jwsAlgorithm);
-                }
-            } catch (ParseException e) {
-                // ignore the error.
-            }
-            // default algorithm
-            return SignatureAlgorithm.RS256;
-        });
+        // Create custom OIDC ID token decoder factory with proxy-enabled WebClient
+        var oidcIdTokenDecodeFactory = createOidcIdTokenDecoderFactory(webClient);
         oidcAuthManager.setJwtDecoderFactory(oidcIdTokenDecodeFactory);
         var authManager =
             new DelegatingReactiveAuthenticationManager(oauth2AuthManager, oidcAuthManager);
@@ -141,6 +130,70 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         return delegate.filter(exchange, chain);
+    }
+
+    /**
+     * Creates a custom OIDC ID token decoder factory that uses the provided WebClient
+     * for JWKS/issuer discovery, ensuring proxy configuration is applied.
+     */
+    private ReactiveJwtDecoderFactory<ClientRegistration> createOidcIdTokenDecoderFactory(
+        WebClient webClient) {
+        
+        return new ReactiveJwtDecoderFactory<ClientRegistration>() {
+            @Override
+            public ReactiveJwtDecoder createDecoder(ClientRegistration clientRegistration) {
+                // Determine the JWS algorithm from provider metadata
+                SignatureAlgorithm jwsAlgorithm = resolveJwsAlgorithm(clientRegistration);
+                
+                String jwkSetUri = clientRegistration.getProviderDetails().getJwkSetUri();
+                if (jwkSetUri == null) {
+                    OAuth2Error oauth2Error = new OAuth2Error(
+                        "missing_signature_verifier",
+                        "Failed to find a Signature Verifier for Client Registration: '"
+                            + clientRegistration.getRegistrationId()
+                            + "'. Check to ensure you have configured the JWK Set URI.",
+                        null
+                    );
+                    throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+                }
+                
+                // Build decoder with custom WebClient for JWKS retrieval
+                NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
+                    .withJwkSetUri(jwkSetUri)
+                    .jwsAlgorithm((org.springframework.security.oauth2.jose.jws.SignatureAlgorithm) jwsAlgorithm)
+                    .webClient(webClient)
+                    .build();
+                
+                // Apply default OIDC claim type converters
+                decoder.setClaimSetConverter(
+                    MappedJwtClaimSetConverter.withDefaults(
+                        ReactiveOidcIdTokenDecoderFactory.createDefaultClaimTypeConverters()
+                    )
+                );
+                
+                return decoder;
+            }
+            
+            private SignatureAlgorithm resolveJwsAlgorithm(ClientRegistration clientRegistration) {
+                var configurationMetadata = clientRegistration.getProviderDetails()
+                    .getConfigurationMetadata();
+                try {
+                    var supportedJwsAlgorithms = JSONObjectUtils.getStringList(
+                        new JSONObject(configurationMetadata),
+                        "id_token_signing_alg_values_supported"
+                    );
+                    // we choose the first one as JWS algorithm
+                    if (!supportedJwsAlgorithms.isEmpty()) {
+                        var jwsAlgorithm = supportedJwsAlgorithms.get(0);
+                        return SignatureAlgorithm.from(jwsAlgorithm);
+                    }
+                } catch (ParseException e) {
+                    // ignore the error and use default
+                }
+                // default algorithm
+                return SignatureAlgorithm.RS256;
+            }
+        };
     }
 
 }
