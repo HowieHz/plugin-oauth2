@@ -160,7 +160,7 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
                 // Build decoder with custom WebClient for JWKS retrieval
                 NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
                     .withJwkSetUri(jwkSetUri)
-                    .jwsAlgorithm((org.springframework.security.oauth2.jose.jws.SignatureAlgorithm) jwsAlgorithm)
+                    .jwsAlgorithm(jwsAlgorithm)
                     .webClient(webClient)
                     .build();
                 
@@ -188,7 +188,7 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
                         return SignatureAlgorithm.from(jwsAlgorithm);
                     }
                 } catch (ParseException e) {
-                    // ignore the error and use default
+                    // Ignore the error if metadata is missing or malformed and fall back to default RS256 algorithm
                 }
                 // default algorithm
                 return SignatureAlgorithm.RS256;
