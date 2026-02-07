@@ -65,6 +65,28 @@ spec:
 apiVersion: auth.halo.run/v1alpha1
 kind: AuthProvider
 metadata:
+  name: linuxdo
+  labels:
+    auth.halo.run/auth-binding: "true"
+spec:
+  displayName: LINUX DO
+  description: LINUX DO Connect OAuth2 provider for sharing forum user information.
+  logo: /plugins/plugin-oauth2/assets/static/linuxdo.svg
+  website: https://linux.do
+  helpPage: https://wiki.linux.do/Community/LinuxDoConnect
+  authenticationUrl: /oauth2/authorization/linuxdo
+  bindingUrl: /oauth2/authorization/linuxdo
+  unbindUrl: /apis/uc.api.auth.halo.run/v1alpha1/user-connections/linuxdo/disconnect
+  authType: oauth2
+  settingRef:
+    name: generic-oauth2-setting
+    group: genericOauth
+  configMapRef:
+    name: oauth2-linuxdo-config
+---
+apiVersion: auth.halo.run/v1alpha1
+kind: AuthProvider
+metadata:
   name: sso
   labels:
     auth.halo.run/auth-binding: "true"

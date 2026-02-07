@@ -19,6 +19,7 @@ Halo 2.0 的 OAuth2 第三方登录插件。
 | GitHub | [https://docs.github.com](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)                                        | `Client ID` `Client Secret` | 无需手动设置 | `<SITE_URL>/login/oauth2/code/github` |
 | GitLab | [https://docs.gitlab.com](https://docs.gitlab.com/ee/integration/oauth_provider.html#configure-gitlab-as-an-oauth-20-authentication-identity-provider) | `Client ID` `Client Secret` | `read_user`  | `<SITE_URL>/login/oauth2/code/gitlab` |
 | Gitee  | <https://gitee.com/oauth/applications>                                                                                                                 | `Client ID` `Client Secret` | `user_info`  | `<SITE_URL>/login/oauth2/code/gitee`  |
+| LINUX DO | <https://wiki.linux.do/Community/LinuxDoConnect>                                                                                                      | `Client ID` `Client Secret` | `profile` | `<SITE_URL>/login/oauth2/code/linuxdo` |
 
 注意事项：
 
