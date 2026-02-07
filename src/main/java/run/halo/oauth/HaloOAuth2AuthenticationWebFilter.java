@@ -74,13 +74,20 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
         var accessTokenResponseClient = new WebClientReactiveAuthorizationCodeTokenResponseClient();
         accessTokenResponseClient.setWebClient(webClient);
 
+        var oauth2UserService = new DefaultReactiveOAuth2UserService();
+        oauth2UserService.setWebClient(webClient);
+
         var oauth2AuthManager = new OAuth2LoginReactiveAuthenticationManager(
             accessTokenResponseClient,
-            new DefaultReactiveOAuth2UserService()
+            oauth2UserService
         );
+
+        var oidcUserService = new OidcReactiveOAuth2UserService();
+        oidcUserService.setOauth2UserService(oauth2UserService);
+
         var oidcAuthManager = new OidcAuthorizationCodeReactiveAuthenticationManager(
             accessTokenResponseClient,
-            new OidcReactiveOAuth2UserService()
+            oidcUserService
         );
         var oidcIdTokenDecodeFactory = new ReactiveOidcIdTokenDecoderFactory();
         oidcIdTokenDecodeFactory.setJwsAlgorithmResolver(clientRegistration -> {
