@@ -1,6 +1,6 @@
 # plugin-oauth2
 
-Halo 2.0 的 OAuth2 第三方登录插件。
+Halo 2.0 的 OAuth2/OIDC 第三方登录插件。
 
 ## 使用方法
 
@@ -14,19 +14,18 @@ Halo 2.0 的 OAuth2 第三方登录插件。
 
 目前支持的认证方式：
 
-| 服务商 | 文档                                                                                                                                                   | Halo 所需配置               | Scope        | 回调地址                              |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | ------------ | ------------------------------------- |
-| GitHub | [https://docs.github.com](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)                                        | `Client ID` `Client Secret` | 无需手动设置 | `<SITE_URL>/login/oauth2/code/github` |
-| GitLab | [https://docs.gitlab.com](https://docs.gitlab.com/ee/integration/oauth_provider.html#configure-gitlab-as-an-oauth-20-authentication-identity-provider) | `Client ID` `Client Secret` | `read_user`  | `<SITE_URL>/login/oauth2/code/gitlab` |
-| Gitee  | <https://gitee.com/oauth/applications>                                                                                                                 | `Client ID` `Client Secret` | `user_info`  | `<SITE_URL>/login/oauth2/code/gitee>  |
-| LINUX DO | <https://wiki.linux.do/Community/LinuxDoConnect>                                                                                                      | `Client ID` `Client Secret` | `openid profile` | `<SITE_URL>/login/oauth2/code/linuxdo` |
+| 服务商   | 文档                                                                                                                                                   | Halo 所需配置               | Scope            | 回调地址                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | ---------------- | -------------------------------------- |
+| GitHub   | [https://docs.github.com](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app)                                        | `Client ID` `Client Secret` | 无需手动设置     | `<SITE_URL>/login/oauth2/code/github`  |
+| GitLab   | [https://docs.gitlab.com](https://docs.gitlab.com/ee/integration/oauth_provider.html#configure-gitlab-as-an-oauth-20-authentication-identity-provider) | `Client ID` `Client Secret` | `read_user`      | `<SITE_URL>/login/oauth2/code/gitlab`  |
+| Gitee    | [https://gitee.com](https://gitee.com/api/v5/oauth_doc#/)                                                                                                                 | `Client ID` `Client Secret` | `user_info`      | `<SITE_URL>/login/oauth2/code/gitee`   |
+| LINUX DO | [https://wiki.linux.do](https://wiki.linux.do/Community/LinuxDoConnect)                                                                                | `Client ID` `Client Secret` | 无需手动设置 | `<SITE_URL>/login/oauth2/code/linuxdo` |
 
 注意事项：
 
 1. 如果认证失败，回调地址请使用 `http` 尝试。
 2. <SITE_URL> 是不包含 `console` 的。
 3. 如果你用于部署的服务器无法访问 GitHub，那 GitHub 认证会失败，其它同理，请先确认连通性。请尝试配置代理。
-4. LINUX DO 现已支持 OIDC (OpenID Connect)，使用 `openid profile` scope。
 
 ## 代理配置（可选）
 

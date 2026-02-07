@@ -68,6 +68,9 @@ spec:
   issuerUri: "https://connect.linux.do/"
   jwkSetUri: "https://connect.linux.do/.well-known/jwks.json"
   clientName: "LINUX DO"
+  configurationMetadata:
+    id_token_signing_alg_values_supported:
+      - "RS256"
 ---
 apiVersion: oauth.halo.run/v1alpha1
 kind: Oauth2ClientRegistration
