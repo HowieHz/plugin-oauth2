@@ -100,7 +100,7 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
         var oidcIdTokenDecodeFactory = createOidcIdTokenDecoderFactory(webClient);
         oidcAuthManager.setJwtDecoderFactory(oidcIdTokenDecodeFactory);
         var authManager =
-            new DelegatingReactiveAuthenticationManager(oauth2AuthManager, oidcAuthManager);
+            new DelegatingReactiveAuthenticationManager(oidcAuthManager, oauth2AuthManager);
         var filter = new OAuth2LoginAuthenticationWebFilter(
             authManager, configuration.getAuthorizedClientRepository()
         );
