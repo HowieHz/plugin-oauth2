@@ -134,7 +134,11 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
 
     /**
      * Creates a custom OIDC ID token decoder factory that uses the provided WebClient
-     * for JWKS/issuer discovery, ensuring proxy configuration is applied.
+     * for JWKS retrieval and issuer discovery, ensuring proxy configuration is applied.
+     *
+     * When jwkSetUri is provided, it directly retrieves the JWKS from that URI.
+     * When only issuerUri is provided, it performs issuer-based discovery by fetching
+     * the OpenID Connect configuration from the issuer's .well-known endpoint.
      */
     private ReactiveJwtDecoderFactory<ClientRegistration> createOidcIdTokenDecoderFactory(
         WebClient webClient) {
