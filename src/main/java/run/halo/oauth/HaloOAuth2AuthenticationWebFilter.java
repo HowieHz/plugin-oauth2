@@ -138,7 +138,6 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
      */
     private ReactiveJwtDecoderFactory<ClientRegistration> createOidcIdTokenDecoderFactory(
         WebClient webClient) {
-        
         return new ReactiveJwtDecoderFactory<ClientRegistration>() {
             @Override
             public ReactiveJwtDecoder createDecoder(ClientRegistration clientRegistration) {
