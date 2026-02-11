@@ -143,33 +143,43 @@ public class HaloOAuth2AuthenticationWebFilter implements AuthenticationSecurity
             public ReactiveJwtDecoder createDecoder(ClientRegistration clientRegistration) {
                 // Determine the JWS algorithm from provider metadata
                 SignatureAlgorithm jwsAlgorithm = resolveJwsAlgorithm(clientRegistration);
-                
+
                 String jwkSetUri = clientRegistration.getProviderDetails().getJwkSetUri();
-                if (jwkSetUri == null) {
-                    OAuth2Error oauth2Error = new OAuth2Error(
-                        "missing_signature_verifier",
-                        "Failed to find a Signature Verifier for Client Registration: '"
-                            + clientRegistration.getRegistrationId()
-                            + "'. Check to ensure you have configured the JWK Set URI.",
-                        null
-                    );
-                    throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+                NimbusReactiveJwtDecoder decoder;
+                if (StringUtils.hasText(jwkSetUri)) {
+                    // Build decoder with custom WebClient for JWKS retrieval using explicit JWK Set URI
+                    decoder = NimbusReactiveJwtDecoder
+                        .withJwkSetUri(jwkSetUri)
+                        .jwsAlgorithm(jwsAlgorithm)
+                        .webClient(webClient)
+                        .build();
                 }
-                
-                // Build decoder with custom WebClient for JWKS retrieval
-                NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
-                    .withJwkSetUri(jwkSetUri)
-                    .jwsAlgorithm(jwsAlgorithm)
-                    .webClient(webClient)
-                    .build();
-                
+                else {
+                    // Fall back to issuer-based discovery when JWK Set URI is not configured
+                    String issuerUri = clientRegistration.getProviderDetails().getIssuerUri();
+                    if (!StringUtils.hasText(issuerUri)) {
+                        OAuth2Error oauth2Error = new OAuth2Error(
+                            "missing_signature_verifier",
+                            "Failed to find a Signature Verifier for Client Registration: '"
+                                + clientRegistration.getRegistrationId()
+                                + "'. Configure either the JWK Set URI or the Issuer URI.",
+                            null
+                        );
+                        throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+                    }
+                    decoder = NimbusReactiveJwtDecoder
+                        .withIssuerLocation(issuerUri)
+                        .jwsAlgorithm(jwsAlgorithm)
+                        .webClient(webClient)
+                        .build();
+                }
+
                 // Apply default OIDC claim type converters
                 decoder.setClaimSetConverter(
                     MappedJwtClaimSetConverter.withDefaults(
                         ReactiveOidcIdTokenDecoderFactory.createDefaultClaimTypeConverters()
                     )
                 );
-                
                 return decoder;
             }
             
