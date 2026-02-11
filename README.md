@@ -21,6 +21,7 @@ Halo 2.0 的 OAuth2/OIDC 第三方登录插件。
 | GitLab   | [https://docs.gitlab.com](https://docs.gitlab.com/ee/integration/oauth_provider.html#configure-gitlab-as-an-oauth-20-authentication-identity-provider) | `Client ID` `Client Secret` | `read_user`      | `<SITE_URL>/login/oauth2/code/gitlab`  |
 | Gitee    | [https://gitee.com](https://gitee.com/api/v5/oauth_doc#/)                                                                                                                 | `Client ID` `Client Secret` | `user_info`      | `<SITE_URL>/login/oauth2/code/gitee`   |
 | LINUX DO | [https://wiki.linux.do](https://wiki.linux.do/Community/LinuxDoConnect)                                                                                | `Client ID` `Client Secret` | 无需手动设置 | `<SITE_URL>/login/oauth2/code/linuxdo` |
+| SSO（任意 OAuth2 / OpenID Connect 提供商） | 通用 OAuth2 / OpenID Connect（参见 [RFC 6749](https://www.rfc-editor.org/rfc/rfc6749) / OIDC 文档）                                                    | `Client ID` `Client Secret` `Authorization URI` `Token URI` `UserInfo Url` `Scopes` `UserName Attribute` | 按提供商要求设置 | `<SITE_URL>/login/oauth2/code/sso`    |
 
 注意事项：
 
